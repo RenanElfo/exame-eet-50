@@ -46,6 +46,8 @@ def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
 def natural_vs_gray_plot(sequence_size, upper_bound=10):
     """
     Compare the BER for 4-QAM modulation with gray and natural mapping.
+
+    Similar to the code in the symbol_error_rate_plot function.
     """
     bit_sequence = randint(2, size=sequence_size)
     natural= np.array([])
@@ -77,7 +79,14 @@ def natural_vs_gray_plot(sequence_size, upper_bound=10):
 
 
 class FourQAM:
-    """Implementation of 4-QAMmodulation."""
+    """
+    Implementation of 4-QAMmodulation.
+    
+    Analogous to the PAM modulation, we consider E_b = 1 and only take
+    as parameters the noise density and the bit sequence, in addition
+    to whether or not we want to use natural mapping. Default is to use
+    gray mapping.
+    """
     def __init__(self, noise_density, bit_sequence, natural_mapping=False):
         self.noise_density = noise_density
         self.bit_sequence = bit_sequence
@@ -98,6 +107,9 @@ class FourQAM:
     def simulational_error_probability(self):
         """
         Calculate the symbol error rate using the Monte Carlo Method.
+
+        Analogous to simulational_error_probability method in PAM
+        class.
         """
         decided_levels_x = self.pam_x._decide_noisy_levels()
         decided_levels_y = self.pam_y._decide_noisy_levels()
@@ -120,6 +132,29 @@ class FourQAM:
 
         Calculate BER using Monte Carlo Method for gray mapping and
         for natural mapping, decided by the natural_mapping parameter.
+
+        Consider the natural mapping bellow:
+
+        11 | 10
+        -------
+        00 | 01
+
+        And the gray mapping:
+
+        10 | 11
+        -------
+        00 | 01
+
+        We can think that these constelations as a combination of a
+        2-PAM in the x axis (pam_x) and a 2-PAM (pam_y). That said, we
+        can affirm that total number of errors of the sequence is:
+
+        N_natural = N_x + 2*N_y - N_xy
+        N_gray = N_x + N_y
+
+        where N_x is the number of errors in pam_x, N_y is the
+        number of errors in pam_y and N_xy is the number of times
+        there was a simultaneous error in pam_x and pam_y.
         """
         decided_levels_x = self.pam_x._decide_noisy_levels()
         decided_levels_y = self.pam_y._decide_noisy_levels()

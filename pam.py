@@ -77,6 +77,9 @@ class PAM:
     def theoretical_error_probability(self):
         """
         Calculate the symbol error rate from the theoretical equation.
+
+        This calculation uses a known equation that was presented in
+        the classroom.
         """
         symbol_noise_ratio = self.symbol_energy / self.noise_density
         M = self.number_of_levels
@@ -84,12 +87,23 @@ class PAM:
         return 2*(1-1/M)*norm.sf(q_function_argument)
 
     def _calculate_delta(self):
-        """Calculate the distance between two levels."""
+        """
+        Calculate the distance between two levels.
+        
+        This calculation can also be retrieved by what was given in
+        the classroom.
+        """
         return np.sqrt(12*self.symbol_energy/(self.number_of_levels**2-1))
 
     def simulational_error_probability(self):
         """
         Calculate the symbol error rate using the Monte Carlo Method.
+
+        We count the number of times that the original signal differs
+        from the noisy signal after passing the decider block. That
+        number is the number of errors. The ratio between the number
+        of errors and the total number of symbols gives us the
+        simulational probability of symbolic error.
         """
         decided_levels = self._decide_noisy_levels()
         error_array = np.not_equal(decided_levels, self.level_sequence)
@@ -97,7 +111,14 @@ class PAM:
         return number_of_errors/error_array.size
 
     def _amplitude_levels(self):
-        """Calculate the amplitude levels used in the modulation."""
+        """
+        Calculate the amplitude levels used in the modulation.
+        
+        From what was teached, we know that the levels in which we will
+        map our sequence of bits goes from -(M-1)*delta/2 to
+        (M-1)*delta/2 and we have M levels. Using numpy's linspace
+        function we obtain an array with the possible levels.
+        """
         M = self.number_of_levels
         return np.linspace(-(M-1)*self.delta/2, (M-1)*self.delta/2, M)
 
@@ -106,7 +127,11 @@ class PAM:
         Map the bit sequence to amplitude levels.
 
         This function has been implemented only in the cases where
-        the number of levels is 2 and 4.
+        the number of levels is 2 and 4. In the case where M = 2, we
+        map the bit 0 to the lowest level and the bit 1 to the highest.
+        When M = 4, we map 00 to the lowest level, 01 to the second
+        lowest level, 11 to the second highest level and 10 to the
+        highest level.
         """
         bit_sequence = self.bit_sequence
         if self.number_of_levels == 2:
@@ -134,7 +159,15 @@ class PAM:
         return self.level_sequence + noise
 
     def _decide_noisy_levels(self):
-        """Decide which level is closest to noisy value."""
+        """
+        Decide which level is closest to noisy value.
+        
+        We replicate the signal M times and subtract from each replica
+        the value of each level. Then we square that result and the min
+        value will be given by the closest point in the constelation to
+        our signal. That's how we can decide which point in the
+        constelation is closest to our signal.
+        """
         M = self.number_of_levels
         signal = self._noisify_levels()
         decider = np.concatenate(tuple(signal for i in range(M)), axis=0)
