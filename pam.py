@@ -42,7 +42,7 @@ def symbol_error_rate_plot(number_of_levels, sequence_size, upper_bound=10):
 
 class PAM:
     """
-    Implements PAM modulation.
+    Implementation of 2-PAM and 4-PAM modulations.
 
     The two important methods of this class is
     theoretical_error_probability and

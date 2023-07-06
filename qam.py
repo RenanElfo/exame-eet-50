@@ -7,6 +7,14 @@ from pam import PAM
 
 
 def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
+    """
+    Plots a graph of SER by E_b/N_0.
+
+    Generate a random sequence of bits of size sequence_size and
+    compare the theoretical symbol error rate and the simulated
+    symbol error rate for E_b/N_0 ranging from [0, upper_bound] dB
+    for a 4-QAM modulation.
+    """
     bit_sequence = randint(2, size=sequence_size)
     theoretical= np.array([])
     simulational = np.array([])
@@ -36,6 +44,9 @@ def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
 
 
 def natural_vs_gray_plot(sequence_size, upper_bound=10):
+    """
+    Compare the BER for 4-QAM modulation with gray and natural mapping.
+    """
     bit_sequence = randint(2, size=sequence_size)
     natural= np.array([])
     gray = np.array([])
@@ -66,6 +77,7 @@ def natural_vs_gray_plot(sequence_size, upper_bound=10):
 
 
 class FourQAM:
+    """Implementation of 4-QAMmodulation."""
     def __init__(self, noise_density, bit_sequence, natural_mapping=False):
         self.noise_density = noise_density
         self.bit_sequence = bit_sequence
@@ -104,7 +116,10 @@ class FourQAM:
 
     def simulational_bit_error_rate(self):
         """
-        Calculate the symbol error rate using the Monte Carlo Method.
+        Calculate the bit error rate using the Monte Carlo Method.
+
+        Calculate BER using Monte Carlo Method for gray mapping and
+        for natural mapping, decided by the natural_mapping parameter.
         """
         decided_levels_x = self.pam_x._decide_noisy_levels()
         decided_levels_y = self.pam_y._decide_noisy_levels()
@@ -125,6 +140,12 @@ class FourQAM:
         return number_of_errors/number_of_symbols
 
     def _map_bits_to_constelation(self):
+        """
+        Map each pair of bits in the sequence given to constelation.
+
+        Each bit pair can be mapped to a 4-QAM constelation using two
+        2-PAM constelations as foundation.
+        """
         bit_sequence = self.bit_sequence
         bit_pairs = np.reshape(bit_sequence, (bit_sequence.size//2, 2)).T
         pam_y = PAM(2, self.noise_density, bit_pairs[0][:])
