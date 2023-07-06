@@ -1,12 +1,9 @@
 import numpy as np
-from numpy.random import randint
-import matplotlib.pyplot as plt
 
 from pam import symbol_error_rate_plot as pam_ser
 from qam import symbol_error_rate_plot as qam_ser
 from qam import natural_vs_gray_plot
 
-NOISE_DENSITY = 1/8
 SEQUENCE_SIZE = 2**18
 
 
