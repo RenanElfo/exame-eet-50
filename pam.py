@@ -26,8 +26,8 @@ def symbol_error_rate_plot(number_of_levels, sequence_size, upper_bound=10):
         simulational = np.append(
             simulational, pam.simulational_error_probability()
         )
-    theoretical_db = np.log10(theoretical)
-    simulational_db = np.log10(simulational[simulational != 0])
+    theoretical_db = 10*np.log10(theoretical)
+    simulational_db = 10*np.log10(simulational[simulational != 0])
     plt.figure()
     plt.plot(bit_energy_noise_ratio_db, theoretical_db,
             label='Theoretical')
@@ -36,7 +36,7 @@ def symbol_error_rate_plot(number_of_levels, sequence_size, upper_bound=10):
     plt.title(f'SERx($E_b/N_0$) for {number_of_levels}-PAM modulation')
     plt.legend()
     plt.grid()
-    plt.ylabel('SNR (dB)')
+    plt.ylabel('SER (dB)')
     plt.xlabel(r'$E_b/N_0 (dB)$')
     plt.show()
 

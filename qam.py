@@ -28,8 +28,8 @@ def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
         simulational = np.append(
             simulational, qam.simulational_error_probability()
         )
-    theoretical_db = np.log10(theoretical)
-    simulational_db = np.log10(simulational[simulational != 0])
+    theoretical_db = 10*np.log10(theoretical)
+    simulational_db = 10*np.log10(simulational[simulational != 0])
     plt.figure()
     plt.plot(bit_energy_noise_ratio_db, theoretical_db,
             label='Theoretical')
@@ -38,7 +38,7 @@ def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
     plt.title(f'SERx($E_b/N_0$) for {4}-QAM modulation')
     plt.legend()
     plt.grid()
-    plt.ylabel('SNR (dB)')
+    plt.ylabel('SER (dB)')
     plt.xlabel(r'$E_b/N_0 (dB)$')
     plt.show()
 
@@ -61,8 +61,8 @@ def natural_vs_gray_plot(sequence_size, upper_bound=10):
         gray = np.append(
             gray, qam_gray.simulational_bit_error_rate()
         )
-    natural_db = np.log10(natural[natural != 0])
-    gray_db = np.log10(gray[gray != 0])
+    natural_db = 10*np.log10(natural[natural != 0])
+    gray_db = 10*np.log10(gray[gray != 0])
     plt.figure()
     plt.plot(bit_energy_noise_ratio_db[natural != 0], natural_db,
             'g', label='Natural')
@@ -71,7 +71,7 @@ def natural_vs_gray_plot(sequence_size, upper_bound=10):
     plt.title(f'BERx($E_b/N_0$) for {4}-QAM modulation')
     plt.legend()
     plt.grid()
-    plt.ylabel('SNR (dB)')
+    plt.ylabel('BER (dB)')
     plt.xlabel(r'$E_b/N_0 (dB)$')
     plt.show()
 
