@@ -6,14 +6,15 @@ import matplotlib.pyplot as plt
 from pam import PAM
 
 
-def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
+def symbol_error_rate_plot(order,sequence_size, natural_mapping,
+                           upper_bound=10):
     """
     Plots a graph of SER by E_b/N_0.
 
     Generate a random sequence of bits of size sequence_size and
     compare the theoretical symbol error rate and the simulated
     symbol error rate for E_b/N_0 ranging from [0, upper_bound] dB
-    for a 4-QAM modulation.
+    for a M-QAM modulation.
     """
     bit_sequence = randint(2, size=sequence_size)
     theoretical= np.array([])
@@ -21,7 +22,7 @@ def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
     bit_energy_noise_ratio_db = np.linspace(0, upper_bound, 100)
     noise_density_array = 10**(-bit_energy_noise_ratio_db/10)
     for noise_density in noise_density_array:
-        qam = FourQAM(noise_density, bit_sequence, natural_mapping)
+        qam = QAM(order, noise_density, bit_sequence, natural_mapping)
         theoretical = np.append(
             theoretical, qam.theoretical_error_probability()
         )
@@ -35,7 +36,7 @@ def symbol_error_rate_plot(sequence_size, natural_mapping, upper_bound=10):
             label='Theoretical')
     plt.plot(bit_energy_noise_ratio_db[simulational != 0], simulational_db,
             'r', label='Simulational')
-    plt.title(f'SERx($E_b/N_0$) for {4}-QAM modulation')
+    plt.title(f'SERx($E_b/N_0$) for {order}-QAM modulation')
     plt.legend()
     plt.grid()
     plt.ylabel('SER (dB)')
@@ -55,11 +56,11 @@ def natural_vs_gray_plot(sequence_size, upper_bound=10):
     bit_energy_noise_ratio_db = np.linspace(0, upper_bound, 100)
     noise_density_array = 10**(-bit_energy_noise_ratio_db/10)
     for noise_density in noise_density_array:
-        qam_natural = FourQAM(noise_density, bit_sequence, True)
+        qam_natural = QAM(4, noise_density, bit_sequence, True)
         natural = np.append(
             natural, qam_natural.simulational_bit_error_rate()
         )
-        qam_gray = FourQAM(noise_density, bit_sequence)
+        qam_gray = QAM(4, noise_density, bit_sequence)
         gray = np.append(
             gray, qam_gray.simulational_bit_error_rate()
         )
@@ -78,16 +79,19 @@ def natural_vs_gray_plot(sequence_size, upper_bound=10):
     plt.show()
 
 
-class FourQAM:
+class QAM:
     """
-    Implementation of 4-QAMmodulation.
+    Implementation of QAM modulation.
     
     Analogous to the PAM modulation, we consider E_b = 1 and only take
     as parameters the noise density and the bit sequence, in addition
     to whether or not we want to use natural mapping. Default is to use
     gray mapping.
     """
-    def __init__(self, noise_density, bit_sequence, natural_mapping=False):
+    def __init__(self, order, noise_density, bit_sequence,
+                 natural_mapping=False):
+        self.order = order
+        self.bits_per_symbol = int(np.log2(self.order))
         self.noise_density = noise_density
         self.bit_sequence = bit_sequence
         self.natural_mapping = natural_mapping
@@ -101,8 +105,10 @@ class FourQAM:
         fixed the bit energy as E_b = 1 and the number of levels
         in each independet PAM that forms the 4-QAM is sqrt(4) = 2.
         """
-        q_function_argument = np.sqrt(2/self.noise_density)
-        return 2*norm.sf(q_function_argument)
+        n_0 = self.noise_density
+        inside_root = 3*np.log2(self.order)/((self.order-1)*n_0)
+        q_function_argument = np.sqrt(inside_root)
+        return 4*(1-1/np.sqrt(self.order))*norm.sf(q_function_argument)
 
     def simulational_error_probability(self):
         """
@@ -121,9 +127,14 @@ class FourQAM:
         number_of_errors_x = error_array_x.sum()
         number_of_errors_y = error_array_y.sum()
         number_of_errors_xy = error_array_xy.sum()
+        # the result bellow for number_of_errors is only valid for
+        # 4-QAM, but, since number_of_error_xy is an very small,
+        # it can be discarded for higher order modulations. Also,
+        # considering the use of gray mapping, we can consider every
+        # symbol error as a single bit error.
         number_of_errors = (number_of_errors_x + number_of_errors_y
                             - number_of_errors_xy)
-        number_of_symbols = self.bit_sequence.size/2
+        number_of_symbols = self.bit_sequence.size/self.bits_per_symbol
         return number_of_errors/number_of_symbols
 
     def simulational_bit_error_rate(self):
@@ -171,18 +182,23 @@ class FourQAM:
         else:
             number_of_errors = (number_of_errors_x + 2*number_of_errors_y
                                 - number_of_errors_xy)
-        number_of_symbols = self.bit_sequence.size/2
-        return number_of_errors/number_of_symbols
+        return number_of_errors/self.bit_sequence.size
 
     def _map_bits_to_constelation(self):
         """
-        Map each pair of bits in the sequence given to constelation.
+        Map each group of k bits in the sequence given to constelation.
 
-        Each bit pair can be mapped to a 4-QAM constelation using two
-        2-PAM constelations as foundation.
+        Each bit pair can be mapped to a M-QAM constelation using two
+        sqrt(M)-PAM constelations as foundation.
         """
+        pam_order = int(np.sqrt(self.order))
         bit_sequence = self.bit_sequence
-        bit_pairs = np.reshape(bit_sequence, (bit_sequence.size//2, 2)).T
-        pam_y = PAM(2, self.noise_density, bit_pairs[0][:])
-        pam_x = PAM(2, self.noise_density, bit_pairs[1][:])
+        bit_pairs = np.reshape(
+            bit_sequence,
+            (bit_sequence.size//self.bits_per_symbol, self.bits_per_symbol)
+        ).T
+        y_bits = bit_pairs[:int(self.bits_per_symbol/2)][:]
+        x_bits = bit_pairs[int(self.bits_per_symbol/2):][:]
+        pam_y = PAM(pam_order, self.noise_density, y_bits)
+        pam_x = PAM(pam_order, self.noise_density, x_bits)
         return pam_x, pam_y
